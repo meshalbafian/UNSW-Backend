@@ -1,21 +1,21 @@
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env if available
+load_dotenv()
 
 class Config:
-    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*')
-
-    ENTREZ_EMAIL = os.environ.get("ENTREZ_EMAIL", "e.shalbafian@unsw.edu.au")
-    ENTREZ_API_KEY = os.environ.get("ENTREZ_API_KEY", "replace_with_ncbi_key")
-    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "replace_with_openai_key")
-
-    # Example constants
-    PUBMEDBERT_MODEL = "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract"
-    TOP_BM25_RESULTS = 70
-    NEURAL_TOP_RESULTS = 70
-    TOP_FINAL_RESULTS = 30
-    TOTAL_PUBMED_RESULTS = 2000
-    BATCH_SIZE = 500
-    MAX_FETCH_IDS = 2000
-
-    # Date filtering
-    MINDATE = "2024/09/18"
-    MAXDATE = "2024/10/31"
+    # General Flask settings
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'a-very-secret-key')
+    DEBUG = os.environ.get('DEBUG', True)
+    FLASK_ENV = os.environ.get('FLASK_ENV', 'development')
+    
+    # PubMed API settings
+    ENTREZ_EMAIL = os.environ.get('ENTREZ_EMAIL', 'your_email@example.com')
+    ENTREZ_API_KEY = os.environ.get('ENTREZ_API_KEY', 'default_ncbi_api_key')
+    
+    TOTAL_PUBMED_RESULTS = int(os.environ.get('TOTAL_PUBMED_RESULTS', 2000))
+    BATCH_SIZE = int(os.environ.get('BATCH_SIZE', 500))
+    
+    # Add the MAX_FETCH_IDS key
+    MAX_FETCH_IDS = int(os.environ.get('MAX_FETCH_IDS', 2000))

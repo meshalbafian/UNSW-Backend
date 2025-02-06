@@ -1,7 +1,7 @@
 from flask import Blueprint
 from app.services.ArticleFilteration.filter_logic import ArticleFilter
 
-gene_bp = Blueprint('gene_api', __name__)
+gene_bp = Blueprint('gene_bp', __name__)
 service = ArticleFilter()
 
 @gene_bp.route('/filter', methods=['POST'])
