@@ -57,7 +57,7 @@ def filter_articles():
         end_date_obj = datetime.strptime(end_date_str, date_format_in).date()
 
     except ValueError:
-        return jsonify({"error": "Invalid date format, expected YYYY/MM/DD"}), 400
+        return jsonify({"error": "Invalid date format, expected YYYY-MM-DD"}), 400
 
     pubmed_request = PubmedRequest(
         start_date= start_date_obj.strftime(date_format_pubmed_api),
