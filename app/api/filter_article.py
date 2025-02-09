@@ -48,7 +48,8 @@ def filter_articles():
     if not start_date_str or not end_date_str:
         return jsonify({"error": "Missing start_date or end_date"}), 400
     
-    date_format_in = "%Y/%m/%d"
+    date_format_in = "%Y-%m-%d"
+    date_format_pubmed_api = "%Y/%m/%d"
 
     try:
         # parse to date objects to validate
@@ -58,11 +59,9 @@ def filter_articles():
     except ValueError:
         return jsonify({"error": "Invalid date format, expected YYYY/MM/DD"}), 400
 
-
-    # 5) Build a FilterRequest data class
     pubmed_request = PubmedRequest(
-        start_date= start_date_obj.strftime(date_format_in),
-        end_date= end_date_obj.strftime(date_format_in),
+        start_date= start_date_obj.strftime(date_format_pubmed_api),
+        end_date= end_date_obj.strftime(date_format_pubmed_api),
         query=query
     )
 
