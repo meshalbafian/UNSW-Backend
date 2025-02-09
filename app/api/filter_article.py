@@ -40,8 +40,8 @@ def filter_articles():
     data = request.json or {}
 
     # 2) Extract values from the JSON keys
-    start_date_str = data.get("start_date")  # e.g. "2024/09/17"
-    end_date_str = data.get("end_date")      # e.g. "2024/10/31"
+    start_date_str = data.get("start_date")  # e.g. "2024-09-17"
+    end_date_str = data.get("end_date")      # e.g. "2024-10-31"
     query = data.get("query", "")            # default to empty if missing
 
     # 3) Validate the presence of dates
@@ -53,8 +53,8 @@ def filter_articles():
 
     try:
         # parse to date objects to validate
-        start_date_obj = datetime.strptime(data["start_date"], date_format_in).date()
-        end_date_obj = datetime.strptime(data["end_date"], date_format_in).date()
+        start_date_obj = datetime.strptime(start_date_str, date_format_in).date()
+        end_date_obj = datetime.strptime(end_date_str, date_format_in).date()
 
     except ValueError:
         return jsonify({"error": "Invalid date format, expected YYYY/MM/DD"}), 400
