@@ -19,3 +19,6 @@ class Config:
     
     # Add the MAX_FETCH_IDS key
     MAX_FETCH_IDS = int(os.environ.get('MAX_FETCH_IDS', 2000))
+
+    # Filtering Criteria
+    ARTICLE_FILTERING_CRITERIA = os.environ.get('ARTICLE_FILTERING_CRITERIA', 'The article has gene or variant or mutation names, Published in credible journals (avoid poor/local ones)')
