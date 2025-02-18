@@ -89,6 +89,7 @@ class ArticleFilter:
 
                 # Extract response content
                 output = response.choices[0].message.content.strip()
+
                 print(f"GPT-4o Response for {article['pubmed_id']}:\n{output}")
 
                 # Extract JSON safely using regex
