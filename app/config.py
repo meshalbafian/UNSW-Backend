@@ -5,6 +5,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
+    # AWS Keys
+    AWS_REGION = os.environ.get('AWS_REGION', 'asia-pacific-sydney')
+    AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY')
+    AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY')
+
     # General Flask settings
     SECRET_KEY = os.environ.get('SECRET_KEY', 'a-very-secret-key')
     DEBUG = os.environ.get('DEBUG', True)
