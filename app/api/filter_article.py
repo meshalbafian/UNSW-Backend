@@ -86,7 +86,9 @@ def analyze_articles_api():
         start_date_str = data.get("start_date")  # e.g. "2024-09-17"
         end_date_str = data.get("end_date")      # e.g. "2024-10-31"
         query = data.get("query", "")            # default to empty if missing
-
+        give_reason = data.get("give_reason", False)  # default to False if missing
+        extract_genes = data.get("extract_genes", False)  # default to False if missing
+        
         # 3) Validate the presence of dates
         if not start_date_str or not end_date_str:
             return jsonify({"error": "Missing start_date or end_date"}), 400
@@ -123,7 +125,7 @@ def analyze_articles_api():
             Exclude phenotype expansion papers or known variants."""
 
         # Analyze articles using the service function
-        analyzed_results = filter_service.analyze_articles_with_LLM(articles, criteria, query)
+        analyzed_results = filter_service.analyze_articles_with_LLM(articles, criteria, query, give_reason, extract_genes)
 
         return jsonify({
             "total_articles": len(analyzed_results),
