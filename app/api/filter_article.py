@@ -25,7 +25,7 @@ def filter_articles():
     query = data.get("query", "")
     criteria = data.get("criteria", "")
 
-    if not start_date_str or not end_date_str or not criteria:
+    if not start_date_str or not end_date_str: #or not criteria:
         return jsonify({"error": "Missing start_date, end_date, or criteria"}), 400
 
     date_format_in = "%Y-%m-%d"

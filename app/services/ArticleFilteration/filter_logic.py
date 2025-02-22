@@ -117,8 +117,6 @@ class ArticleFilter:
         if give_reason:
             model = "o1-mini"
 
-        
-
         # print(f"Additional Filtering Criteria: {criteria}")
         for i, article in enumerate(articles):
             print(f"Processing article {i+1}/{len(articles)}...")

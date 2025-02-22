@@ -6,7 +6,7 @@ load_dotenv()
 
 class Config:
     # AWS Keys
-    AWS_REGION = os.environ.get('AWS_REGION', 'asia-pacific-sydney')
+    AWS_REGION = os.environ.get('AWS_REGION', 'ap-southeast-2')
     AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY')
     AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY')
 

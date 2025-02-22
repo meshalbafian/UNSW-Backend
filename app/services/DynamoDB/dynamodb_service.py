@@ -1,19 +1,15 @@
 import boto3
 import os
 from botocore.exceptions import BotoCoreError, ClientError
-from flask import current_app
-from app.config import AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+from app.config import Config
 
 
 # Initialize DynamoDB
 dynamodb = boto3.resource(
     "dynamodb",
-    region_name = AWS_REGION,
-    aws_access_key_id = AWS_ACCESS_KEY_ID,
-    aws_secret_access_key = AWS_SECRET_ACCESS_KEY
-    # region_name = current_app.config["AWS_REGION"],
-    # aws_access_key_id = current_app.config["AWS_ACCESS_KEY"],
-    # aws_secret_access_key = current_app.config["AWS_SECRET_KEY"]
+    region_name = Config.AWS_REGION,
+    aws_access_key_id = Config.AWS_ACCESS_KEY,
+    aws_secret_access_key = Config.AWS_SECRET_KEY
 )
 
 
@@ -22,16 +18,9 @@ TABLE_NAME = "report_filtered_articles"
 class ReportService:
     def __init__(self):
         self.table = dynamodb.Table(TABLE_NAME)
-        # self.table = boto3.resource(
-        #     "dynamodb",
-        #     region_name = current_app.config["AWS_REGION"],
-        #     aws_access_key_id = current_app.config["AWS_ACCESS_KEY"],
-        #     aws_secret_access_key = current_app.config["AWS_SECRET_KEY"]
-        # ).Table("report_filtered_articles")
-
 
     def find_existing_report(self, start_date: str, end_date: str, query: str, criteria: str):
-        """Find an existing report based on search parameters."""
+        """Check if a report with the same parameters exists in DynamoDB."""
         try:
             response = self.table.scan(
                 FilterExpression="start_date = :sd AND end_date = :ed AND query = :q AND criteria = :c",
@@ -43,10 +32,13 @@ class ReportService:
                 }
             )
             reports = response.get("Items", [])
-            return reports[0] if reports else None
-        except (BotoCoreError, ClientError) as e:
-            return {"error": str(e)}
 
+            return reports[0] if reports else None
+
+        except Exception as e:
+            print(f"Error finding existing report: {str(e)}")
+            return None  # 🔹 Fix: Return None instead of an error dictionary
+    
     def save_report(self, report_id: str, start_date: str, end_date: str, query: str, criteria: str, created_at: str):
         """Create a new report entry in DynamoDB."""
         try:
@@ -113,22 +105,5 @@ class ReportService:
             )
 
             return response.get("Attributes", {})
-        except (BotoCoreError, ClientError) as e:
-            return {"error": str(e)}
-
-    def find_existing_report(self, start_date: str, end_date: str, query: str, criteria: str):
-        """Find an existing report based on search parameters."""
-        try:
-            response = self.table.scan(
-                FilterExpression="start_date = :sd AND end_date = :ed AND query = :q AND criteria = :c",
-                ExpressionAttributeValues={
-                    ":sd": start_date,
-                    ":ed": end_date,
-                    ":q": query,
-                    ":c": criteria
-                }
-            )
-            reports = response.get("Items", [])
-            return reports[0] if reports else None
         except (BotoCoreError, ClientError) as e:
             return {"error": str(e)}
