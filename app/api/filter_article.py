@@ -1,9 +1,10 @@
-# app/api/filter_article.py
+
 from flask import Blueprint, request, jsonify, current_app
 from app.services.ArticleFilteration.filter_logic import ArticleFilter
 from datetime import datetime
 from app.services.models.data_models import PubmedRequest
 from app.services.DynamoDB.dynamodb_service import ReportService
+import threading
 
 article_bp = Blueprint('article_bp', __name__)
 filter_service = ArticleFilter()
@@ -24,6 +25,8 @@ def filter_articles():
     end_date_str = data.get("end_date")
     query = data.get("query", "")
     criteria = data.get("criteria", "")
+    give_reason = data.get("give_reason", False)
+    extract_genes = data.get("extract_genes", False)
 
     if not start_date_str or not end_date_str: #or not criteria:
         return jsonify({"error": "Missing start_date, end_date, or criteria"}), 400
@@ -54,8 +57,59 @@ def filter_articles():
         criteria=criteria,
         created_at=created_at
     )
+    # Step 3: Run analysis in a separate thread
+    thread = threading.Thread(target=run_analysis, args=(report_id, start_date_str, end_date_str, query, criteria, give_reason, extract_genes))
+    thread.start()
 
-    return jsonify({"report_id": report_id, "message": "New report created"}), 201
+    return jsonify({"report_id": report_id, "message": "Report created, analysis started"}), 201
+
+
+def run_analysis(report_id, start_date, end_date, query, criteria, give_reason, extract_genes):
+    """
+    Runs the analysis and updates the report in DynamoDB.
+    """
+    try:
+        print(f"Starting analysis for report_id: {report_id}")
+       
+        date_format_in = "%Y-%m-%d"
+        date_format_pubmed_api = "%Y/%m/%d"
+
+        try:
+            start_date_obj = datetime.strptime(start_date, date_format_in).date()
+            end_date_obj = datetime.strptime(start_date, date_format_in).date()
+        except ValueError:
+            return jsonify({"error": "Invalid date format, expected YYYY-MM-DD"}), 400
+
+        pubmed_request = PubmedRequest(
+            start_date=start_date_obj.strftime(date_format_pubmed_api),
+            end_date=end_date_obj.strftime(date_format_pubmed_api),
+            query=query
+        )
+
+        articles = filter_service.get_pubmed_articles(pubmed_request)
+
+        # criteria = """The article has gene or variant or mutation name and mentions it's related to one of these disease:
+        #     intellectual disability OR mental retardation OR developmental delay OR neurodevelopmental OR epilepsy OR encephalopathy OR seizure.
+        #     Published in credible journals (avoid poor/local ones).
+        #     Based on multiple families/people (not single-family/person studies).
+        #     Conducted on humans (exclude studies solely on animals/mice).
+        #     Not a GWAS study.
+        #     Avoid articles with 'potential' or 'novel candidate gene' in the title/abstract.
+        #     Focus on Mendelian genetics with correct phenotypes.
+        #     Exclude phenotype expansion papers or known variants."""
+
+        analyzed_results = filter_service.analyze_articles_with_LLM(
+            articles, criteria, query, give_reason, extract_genes
+        )
+
+        # Step 4: Update the report in DynamoDB with analyzed results
+        report_service.update_report_and_status(report_id, analyzed_results, "complete")
+
+        print(f"Analysis complete for report_id: {report_id}")
+
+    except Exception as e:
+        print(f"Error in analysis: {str(e)}")
+        report_service.update_status(report_id, "error")
 
 @article_bp.route('/analyze', methods=['POST'])
 def analyze_articles_api():
@@ -116,17 +170,17 @@ def analyze_articles_api():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@article_bp.route('/reports/<report_id>', methods=['GET'])
-def get_report(report_id):
-    """
-    Fetch a report from DynamoDB by its ID.
-    """
-    report = report_service.get_report(report_id)
-    if not report:
-        return jsonify({"error": "Report not found"}), 404
-    return jsonify(report)
+# @article_bp.route('/reports/<report_id>', methods=['GET'])
+# def get_report(report_id):
+#     """
+#     Fetch a report from DynamoDB by its ID.
+#     """
+#     report = report_service.get_report(report_id)
+#     if not report:
+#         return jsonify({"error": "Report not found"}), 404
+#     return jsonify(report)
 
-@article_bp.route('/reports/<report_id>/articles/<pubmed_id>/genes', methods=['PUT'])
+# @article_bp.route('/reports/<report_id>/articles/<pubmed_id>/genes', methods=['PUT'])
 def update_genes(report_id, pubmed_id):
     """
     Update genes for a specific article in a report.

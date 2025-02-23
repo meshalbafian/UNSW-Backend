@@ -2,14 +2,14 @@ import time
 from datetime import datetime
 from xml.etree import ElementTree as ET
 from Bio import Entrez
-from flask import current_app
+from app.config import Config
 
 
 def fetch_pubmed_ids(query, total_results=2000, batch_size=500, mindate=None, maxdate=None):
     """Fetch PubMed article IDs matching the query with pagination and date filtering."""
     all_ids = []
-    Entrez.email = current_app.config["ENTREZ_EMAIL"]
-    Entrez.api_key = current_app.config["ENTREZ_API_KEY"]
+    Entrez.email = Config.ENTREZ_EMAIL
+    Entrez.api_key = Config.ENTREZ_API_KEY
     for start in range(0, total_results, batch_size):
         print(f"Fetching IDs {start+1} to {min(start+batch_size, total_results)}")
         try:
@@ -34,13 +34,13 @@ def fetch_pubmed_ids(query, total_results=2000, batch_size=500, mindate=None, ma
 def fetch_pubmed_data(pubmed_ids, mindate=None, maxdate=None):
     """Fetch titles, abstracts, and publication dates for the given PubMed IDs."""
     articles = []
-    if len(pubmed_ids) <= current_app.config["MAX_FETCH_IDS"]:
+    if len(pubmed_ids) <= Config.MAX_FETCH_IDS:
         id_string = ",".join(pubmed_ids)
         # articles.extend(parse_pubmed_data(id_string, pubmed_ids))
         articles.extend(parse_pubmed_data(id_string, mindate, maxdate))
     else:
-        for i in range(0, len(pubmed_ids), current_app.config["BATCH_SIZE"]):
-            batch_ids = pubmed_ids[i:i+ current_app.config["BATCH_SIZE"]]
+        for i in range(0, len(pubmed_ids), Config.BATCH_SIZE):
+            batch_ids = pubmed_ids[i:i+ Config.BATCH_SIZE]
             id_string = ",".join(batch_ids)
             # articles.extend(parse_pubmed_data(id_string, batch_ids))
             articles.extend(parse_pubmed_data(id_string, mindate, maxdate))
@@ -124,10 +124,10 @@ def parse_pubmed_data(id_string, mindate, maxdate):
     """Fetch and parse PubMed data (PubMed ID, title, abstract, and date) with date filtering."""
     from xml.etree import ElementTree as ET
     articles = []
-    Entrez.email = current_app.config["ENTREZ_EMAIL"]
-    Entrez.api_key = current_app.config["ENTREZ_API_KEY"]
-    # mindate=current_app.config["MINDATE"]
-    # maxdate=current_app.config["MAXDATE"]
+    Entrez.email = Config.ENTREZ_EMAIL
+    Entrez.api_key = Config.ENTREZ_API_KEY
+    # mindate=Config.MINDATE
+    # maxdate=Config.MAXDATE
 
     try:
         fetch_handle = Entrez.efetch(

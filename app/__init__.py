@@ -3,7 +3,7 @@ from flasgger import Swagger
 from .config import Config
 from .extensions import cors
 from .api.filter_article import article_bp
-
+from app.api.report import report_bp
 
 swagger_config = {
     "headers": [],
@@ -45,5 +45,6 @@ def create_app(config_class=Config):
 
     # Register your blueprint
     app.register_blueprint(article_bp, url_prefix="/api/articles")
+    app.register_blueprint(report_bp, url_prefix="/api/reports")
 
     return app

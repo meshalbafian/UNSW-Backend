@@ -58,12 +58,17 @@ class ReportService:
         except (BotoCoreError, ClientError) as e:
             return {"error": str(e)}
 
-    def get_report(self, report_id: str):
-        """Retrieve a report by its ID."""
+    def get_report(self, report_id):
+        """Retrieve the report from DynamoDB"""
         try:
             response = self.table.get_item(Key={"report_id": report_id})
-            return response.get("Item", None)
-        except (BotoCoreError, ClientError) as e:
+
+            if "Item" not in response:
+                return None 
+
+            return response["Item"]
+        except Exception as e:
+            print(f"❌ Error retrieving report: {str(e)}")
             return {"error": str(e)}
 
     def add_filtered_articles(self, report_id: str, new_articles: list):
@@ -106,4 +111,47 @@ class ReportService:
 
             return response.get("Attributes", {})
         except (BotoCoreError, ClientError) as e:
+            return {"error": str(e)}
+
+    def update_report(self, report_id, analyzed_results):
+        """Update the report in DynamoDB with analyzed results"""
+        try:
+            self.table.update_item(
+                Key={"report_id": report_id},
+                UpdateExpression="SET filtered_articles = :articles",
+                ExpressionAttributeValues={":articles": analyzed_results}
+            )
+            return {"message": "Report updated"}
+        except Exception as e:
+            return {"error": str(e)}
+
+    def update_status(self, report_id, status):
+        """Update the status of the report"""
+        try:
+            self.table.update_item(
+                Key={"report_id": report_id},
+                UpdateExpression="SET status = :status",
+                ExpressionAttributeValues={":status": status}
+            )
+            return {"message": "Status updated"}
+        except Exception as e:
+            return {"error": str(e)}
+
+    def update_report_and_status(self, report_id, analyzed_results, status):
+        """Update both filtered articles and status in a single DynamoDB request"""
+        try:
+            self.table.update_item(
+                Key={"report_id": report_id},
+                UpdateExpression="SET filtered_articles = :articles, #status = :status",
+                ExpressionAttributeValues={
+                    ":articles": analyzed_results,
+                    ":status": status
+                },
+                ExpressionAttributeNames={  # 🔹 Use this to escape reserved words
+                    "#status": "status"
+                }
+            )
+            return {"message": "Report and status updated"}
+        
+        except Exception as e:
             return {"error": str(e)}

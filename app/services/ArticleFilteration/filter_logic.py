@@ -4,8 +4,8 @@ from flask import current_app
 import openai
 import json
 import re
-from flask import current_app
 import tiktoken
+from app.config import Config
 
 from app.services.models.prompts import (
     SYSTEM_PROMPT,
@@ -27,7 +27,7 @@ class ArticleFilter:
         print(f"Getting results from {request_data.start_date} to {request_data.end_date}...\n")
 
         print("\n--- Fetching PubMed IDs ---")
-        pubmed_ids = fetch_pubmed_ids(request_data.query, total_results=current_app.config["TOTAL_PUBMED_RESULTS"], batch_size=current_app.config["BATCH_SIZE"], mindate=request_data.start_date, maxdate=request_data.end_date)
+        pubmed_ids = fetch_pubmed_ids(request_data.query, total_results = Config.TOTAL_PUBMED_RESULTS, batch_size = Config.BATCH_SIZE, mindate=request_data.start_date, maxdate=request_data.end_date)
         print(f"Fetched {len(pubmed_ids)} article IDs.")
 
         print("\n--- Fetching PubMed Data ---")
@@ -157,7 +157,7 @@ class ArticleFilter:
 
                 # Append the results
                 results.append({
-                    "PubMed ID": article['pubmed_id'],
+                    "PubMedID": article['pubmed_id'],
                     "Title": article['title'],
                     "Abstract": article['abstract'],
                     "Journal": article['journal'],
